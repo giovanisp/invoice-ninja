@@ -1,26 +1,42 @@
-@extends('header')
+@extends('accounts.nav')
 
 @section('head')
 	@parent
 
-	<script src="{{ asset('js/chart.js') }}" type="text/javascript"></script>		
+	<script src="{{ asset('js/Chart.js') }}" type="text/javascript"></script>		
 @stop
 
 @section('content')
-	
-	<p>&nbsp;</p>
-	
-	<div class="row">
-		<div class="col-lg-3">
+	@parent
+	@include('accounts.nav_advanced')
 
-			{{ Former::open() }}
+  {{ Former::open() }}
+  {{ Former::legend('chart_builder') }}
+  {{ Former::close() }}
+
+	<div class="row">
+		<div class="col-lg-4">
+
+			{{ Former::open()->addClass('warn-on-exit') }}
 			{{ Former::populateField('start_date', $startDate) }}
 			{{ Former::populateField('end_date', $endDate) }}
 			{{ Former::select('chart_type')->options($chartTypes, $chartType) }}
 			{{ Former::select('group_by')->options($dateTypes, $groupBy) }}
-			{{ Former::text('start_date') }}
-			{{ Former::text('end_date') }}
-			{{ Former::actions( Button::primary_submit('Generate') ) }}
+			{{ Former::text('start_date')->data_date_format(Session::get(SESSION_DATE_PICKER_FORMAT))
+					->append('<i class="glyphicon glyphicon-calendar" onclick="toggleDatePicker(\'start_date\')"></i>') }}
+			{{ Former::text('end_date')->data_date_format(Session::get(SESSION_DATE_PICKER_FORMAT))
+					->append('<i class="glyphicon glyphicon-calendar" onclick="toggleDatePicker(\'end_date\')"></i>') }}
+
+			@if (Auth::user()->isPro())
+				{{ Former::actions( Button::primary_submit('Generate') ) }}
+			@else
+			<script>
+			    $(function() {   
+			    	$('form.warn-on-exit').find('input, select').prop('disabled', true);
+			    });
+			</script>	
+			@endif
+			
 			{{ Former::close() }}
 
 			<p>&nbsp;</p>
@@ -38,8 +54,8 @@
 			</div>
 
 		</div>
-		<div class="col-lg-9">
-			<canvas id="monthly-reports" width="850" height="400"></canvas>
+		<div class="col-lg-8">
+			<canvas id="monthly-reports" width="772" height="400"></canvas>
 		</div>
 
 	</div>

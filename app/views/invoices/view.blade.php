@@ -1,71 +1,79 @@
-@extends('header')
+@extends('public.header')
 
 @section('head')
 	@parent
 
+		@include('script')		
+		
 		<script src="{{ asset('js/pdf_viewer.js') }}" type="text/javascript"></script>
 		<script src="{{ asset('js/compatibility.js') }}" type="text/javascript"></script>
+
+		<style type="text/css">
+			body {
+				background-color: #f8f8f8;		
+			}
+		</style>
 @stop
 
 @section('content')
 
-	@if ($invoice->client->account->isGatewayConfigured())
-		<div class="pull-right" style="width:270px">
-			{{ Button::normal('Download PDF', array('onclick' => 'onDownloadClick()', 'class' => 'btn-lg')) }}
-			{{ Button::primary_link(URL::to('payment/' . $invitation->invitation_key), 'Pay Now', array('class' => 'btn-lg pull-right')) }}
-		</div>		
-	@else 
-		<div class="pull-right">
-			{{ Button::primary('Download PDF', array('onclick' => 'onDownloadClick()', 'class' => 'btn-lg')) }}
-		</div>		
-	@endif
-	
-	<div class="clearfix"></div><p>&nbsp;</p>
+	<div class="container">
 
-	<iframe id="theFrame" frameborder="1" width="100%" height="1180" style="display:none;margin: 0 auto"></iframe>
-	<canvas id="theCanvas" style="display:none;width:100%;border:solid 1px #CCCCCC;"></canvas>
+		<p>&nbsp;</p>
+        <div class="pull-right" style="text-align:right">
+        @if ($invoice->is_quote)            
+            {{ Button::normal(trans('texts.download_pdf'), array('onclick' => 'onDownloadClick()', 'class' => 'btn-lg')) }}&nbsp;&nbsp;
+            @if (!$isConverted)
+                {{ Button::success_link(URL::to('approve/' . $invitation->invitation_key), trans('texts.approve'), array('class' => 'btn-lg')) }}
+            @endif
+		@elseif ($invoice->client->account->isGatewayConfigured() && !$invoice->isPaid() && !$invoice->is_recurring)
+			{{ Button::normal(trans('texts.download_pdf'), array('onclick' => 'onDownloadClick()', 'class' => 'btn-lg')) }}&nbsp;&nbsp;
+            @if ($hasToken)
+                {{ DropdownButton::success_lg(trans('texts.pay_now'), [
+                    ['url' => URL::to("payment/{$invitation->invitation_key}?use_token=true"), 'label' => trans('texts.use_card_on_file')],
+                    ['url' => URL::to('payment/' . $invitation->invitation_key), 'label' => trans('texts.edit_payment_details')]
+                ])->addClass('btn-lg') }}
+            @else
+			     {{ Button::success_link(URL::to('payment/' . $invitation->invitation_key), trans('texts.pay_now'), array('class' => 'btn-lg')) }}		
+            @endif
+		@else 
+			{{ Button::success('Download PDF', array('onclick' => 'onDownloadClick()', 'class' => 'btn-lg')) }}			
+		@endif
+		</div>        
 
-	<script type="text/javascript">
+		<div class="clearfix"></div><p>&nbsp;</p>
 
-		$(function() {
+		<script type="text/javascript">
+
 			window.invoice = {{ $invoice->toJson() }};
-			@if (file_exists($invoice->client->account->getLogoPath()))
-				invoice.image = "{{ HTML::image_data($invoice->client->account->getLogoPath()) }}";
-				invoice.imageWidth = {{ $invoice->client->account->getLogoWidth() }};
-				invoice.imageHeight = {{ $invoice->client->account->getLogoHeight() }};
-			@endif
-			var doc = generatePDF(invoice, true);
-			if (!doc) return;
-			var string = doc.output('datauristring');
+			invoice.is_pro = {{ $invoice->client->account->isPro() ? 'true' : 'false' }};
+			invoice.is_quote = {{ $invoice->is_quote ? 'true' : 'false' }};
+			invoice.contact = {{ $contact->toJson() }};
+
+			function getPDFString() {
+	  	  var doc = generatePDF(invoice, invoice.invoice_design.javascript);
+				if (!doc) return;
+				return doc.output('datauristring');
+			}
+
+			$(function() {
+				refreshPDF();
+			});
 			
-			if (isFirefox || (isChrome && !isChromium)) {
-				$('#theFrame').attr('src', string).show();
-			} else {
-				var pdfAsArray = convertDataURIToBinary(string);	
-			    PDFJS.getDocument(pdfAsArray).then(function getPdfHelloWorld(pdf) {
-
-			      pdf.getPage(1).then(function getPageHelloWorld(page) {
-			        var scale = 1.5;
-			        var viewport = page.getViewport(scale);
-
-			        var canvas = document.getElementById('theCanvas');
-			        var context = canvas.getContext('2d');
-			        canvas.height = viewport.height;
-			        canvas.width = viewport.width;
-
-			        page.render({canvasContext: context, viewport: viewport});
-			        $('#theCanvas').show();
-			      });
-			    });				
-			 }
-		});
-
-		function onDownloadClick() {
-			var doc = generatePDF(invoice);
-			doc.save('Invoice-' + invoice.invoice_number + '.pdf');
-		}
+			function onDownloadClick() {
+				var doc = generatePDF(invoice, invoice.invoice_design.javascript, true);
+                var fileName = invoice.is_quote ? invoiceLabels.quote : invoiceLabels.invoice;
+				doc.save(fileName + '-' + invoice.invoice_number + '.pdf');
+			}
 
 
-	</script>
+		</script>
+
+		@include('invoices.pdf', ['account' => $invoice->client->account])
+
+		<p>&nbsp;</p>
+		<p>&nbsp;</p>
+
+	</div>	
 
 @stop

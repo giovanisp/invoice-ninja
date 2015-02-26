@@ -2,63 +2,67 @@
 
 use ninja\mailers\Mailer;
 
-class HomeController extends BaseController {
+class HomeController extends BaseController
+{
+    protected $mailer;
 
-	protected $layout = 'master';
-	protected $mailer;
+    public function __construct(Mailer $mailer)
+    {
+        parent::__construct();
 
-	public function __construct(Mailer $mailer)
-	{
-		parent::__construct();
+        $this->mailer = $mailer;
+    }
 
-		$this->mailer = $mailer;
-	}	
+    public function showIndex()
+    {
+        if (!Utils::isDatabaseSetup()) {
+            return Redirect::to('/setup');
+        } elseif (Account::count() == 0) {
+            return Redirect::to('/invoice_now');
+        } else {
+            return Redirect::to('/login');
+        }
+    }
 
-	public function showWelcome()
-	{
-		return View::make('splash');
-	}
+    public function showTerms()
+    {
+        return View::make('public.terms', ['hideHeader' => true]);
+    }
+    
+    public function invoiceNow()
+    {
+        if (Auth::check()) {
+            return Redirect::to('invoices/create')->with('sign_up', Input::get('sign_up'));
+        } else {
+            return View::make('public.header', ['invoiceNow' => true]);
+        }
+    }
 
-	public function showAboutUs()
-	{
-		return View::make('about_us');
-	}
+    public function newsFeed($userType, $version)
+    {
+        $response = Utils::getNewsFeedResponse($userType);
 
-	public function showContactUs()
-	{
-		return View::make('contact_us');
-	}
+        return Response::json($response);
+    }
 
-	public function showTerms()
-	{
-		return View::make('terms');
-	}
+    public function hideMessage()
+    {
+        if (Auth::check() && Session::has('news_feed_id')) {
+            $newsFeedId = Session::get('news_feed_id');
+            if ($newsFeedId != NEW_VERSION_AVAILABLE && $newsFeedId > Auth::user()->news_feed_id) {
+                $user = Auth::user();
+                $user->news_feed_id = $newsFeedId;
+                $user->save();
+            }
 
-	public function doContactUs()
-	{
-		$email = Input::get('email');
-		$name = Input::get('name');
-		$message = Input::get('message');
+            Session::forget('news_feed_message');
+        }
 
-		$data = [		
-			'name' => $name,
-			'email' => $email,
-			'text' => $message
-		];
+        return 'success';
+    }
 
-		$this->mailer->sendTo('contact@invoiceninja.com', 'contact@invoiceninja.com', 'Invoice Ninja Feedback', 'contact', $data);
-
-		Session::flash('message', 'Successfully sent message');
-		return Redirect::to('/contact');
-	}
-
-	public function showComingSoon()
-	{
-		return View::make('coming_soon');	
-	}
-
-	public function logError()
-	{
-		return Utils::logError(Input::get('error'), 'JavaScript');
-	}
+    public function logError()
+    {
+        return Utils::logError(Input::get('error'), 'JavaScript');
+    }
 }

@@ -2,7 +2,7 @@
 
 @section('head')	
 
-	  <link href="{{ asset('vendor/bootstrap/dist/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css"/> 
+	  <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet" type="text/css"/> 
 
     <style type="text/css">
 		body {
@@ -57,8 +57,8 @@
 	        'password_confirmation' => 'required',        
 		)); }}
 
-			<h2 class="form-signin-heading">Passord Reset</h2>
-    		<input type="hidden" name="token" value="{{{ $token }}}">
+			<h2 class="form-signin-heading">Set Password</h2><p/>&nbsp;
+    	<input type="hidden" name="token" value="{{{ $token }}}">
 
 			<p>
 				{{ Former::password('password') }}				

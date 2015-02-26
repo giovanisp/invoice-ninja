@@ -58,9 +58,15 @@ $monolog->pushHandler(new Monolog\Handler\SyslogHandler('intranet', 'user', Logg
 
 App::error(function(Exception $exception, $code)
 {
-	//Log::error($exception);
-
-	Utils::logError($exception . ' ' . $code);
+  if (Utils::isNinjaProd())
+  {
+    Utils::logError($code . ' ' . Utils::getErrorString($exception));
+    return Response::view('error', ['hideHeader' => true, 'error' => "A {$code} error occurred."], $code);
+  }
+  else
+  {
+    return null;
+  }
 });
 
 /*
@@ -76,7 +82,7 @@ App::error(function(Exception $exception, $code)
 
 App::down(function()
 {
-	return Response::make("Be right back!", 503);
+	return Response::make("We are currently undergoing some brief maintenance, be right back!", 503);
 });
 
 

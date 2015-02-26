@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 class ConstantsSeeder extends Seeder
 {
@@ -46,6 +46,7 @@ class ConstantsSeeder extends Seeder
 		PaymentType::create(array('name' => 'Credit Card Other'));
 		PaymentType::create(array('name' => 'PayPal'));
 		PaymentType::create(array('name' => 'Google Wallet'));
+		PaymentType::create(array('name' => 'Check'));
 
 		Theme::create(array('name' => 'amelia'));
 		Theme::create(array('name' => 'cerulean'));
@@ -104,8 +105,9 @@ class ConstantsSeeder extends Seeder
 		Industry::create(array('name' => 'Transportation'));
 		Industry::create(array('name' => 'Travel & Luxury'));
 		Industry::create(array('name' => 'Other'));
+		Industry::create(array('name' => 'Photography'));
 
-		Size::create(array('name' => '1 = 3'));
+		Size::create(array('name' => '1 - 3'));
 		Size::create(array('name' => '4 - 10'));
 		Size::create(array('name' => '11 - 50'));
 		Size::create(array('name' => '51 - 100'));
@@ -118,10 +120,25 @@ class ConstantsSeeder extends Seeder
 		PaymentTerm::create(array('num_days' => 15, 'name' => 'Net 15'));
 		PaymentTerm::create(array('num_days' => 30, 'name' => 'Net 30'));
 		PaymentTerm::create(array('num_days' => 60, 'name' => 'Net 60'));
+		PaymentTerm::create(array('num_days' => 90, 'name' => 'Net 90'));
 
 		Currency::create(array('name' => 'US Dollar', 'code' => 'USD', 'symbol' => '$', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
 		Currency::create(array('name' => 'Pound Sterling', 'code' => 'GBP', 'symbol' => '£', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
 		Currency::create(array('name' => 'Euro', 'code' => 'EUR', 'symbol' => '€', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+		Currency::create(array('name' => 'Rand', 'code' => 'ZAR', 'symbol' => 'R', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+		Currency::create(array('name' => 'Danish Krone', 'code' => 'DKK', 'symbol' => 'kr ', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+		Currency::create(array('name' => 'Israeli Shekel', 'code' => 'ILS', 'symbol' => 'NIS ', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+		Currency::create(array('name' => 'Swedish Krona', 'code' => 'SEK', 'symbol' => 'kr ', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+		Currency::create(array('name' => 'Kenyan Shilling', 'code' => 'KES', 'symbol' => 'KSh ', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+		Currency::create(array('name' => 'Canadian Dollar', 'code' => 'CAD', 'symbol' => 'C$', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+		Currency::create(array('name' => 'Philippine Peso', 'code' => 'PHP', 'symbol' => 'P ', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+		Currency::create(array('name' => 'Indian Rupee', 'code' => 'INR', 'symbol' => 'Rs. ', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+		Currency::create(array('name' => 'Australian Dollar', 'code' => 'AUD', 'symbol' => '$', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+		Currency::create(array('name' => 'Singapore Dollar', 'code' => 'SGD', 'symbol' => 'SGD ', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+        Currency::create(array('name' => 'Norske Kroner', 'code' => 'NOK', 'symbol' => 'kr ', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+        Currency::create(array('name' => 'New Zealand Dollar', 'code' => 'NZD', 'symbol' => '$', 'precision' => '2', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+		Currency::create(array('name' => 'Vietnamese Dong', 'code' => 'VND', 'symbol' => 'VND ', 'precision' => '0', 'thousand_separator' => ',', 'decimal_separator' => '.'));
+        Currency::create(array('name' => 'Swiss Franc', 'code' => 'CHF', 'symbol' => 'CHF ', 'precision' => '2', 'thousand_separator' => '\'', 'decimal_separator' => '.'));
 
 
 		DatetimeFormat::create(array('format' => 'd/M/Y g:i a', 'label' => '10/Mar/2013'));
@@ -140,6 +157,9 @@ class ConstantsSeeder extends Seeder
 		DateFormat::create(array('format' => 'F j, Y', 'picker_format' => 'MM d, yyyy', 'label' => 'March 10, 2013'));
 		DateFormat::create(array('format' => 'D M j, Y', 'picker_format' => 'D MM d, yyyy', 'label' => 'Mon March 10, 2013'));			
 		
+		PaymentLibrary::create(['name' => 'Omnipay']);
+		PaymentLibrary::create(['name' => 'PHP-Payments']);
+
 		/*	
 		d, dd: Numeric date, no leading zero and leading zero, respectively. Eg, 5, 05.
 		D, DD: Abbreviated and full weekday names, respectively. Eg, Mon, Monday.
@@ -270,6 +290,7 @@ class ConstantsSeeder extends Seeder
 		    'Asia/Dhaka'           => "(GMT+06:00) Dhaka",
 		    'Asia/Novosibirsk'     => "(GMT+07:00) Novosibirsk",
 		    'Asia/Bangkok'         => "(GMT+07:00) Bangkok",
+                   'Asia/Ho_Chi_Minh'     => "(GMT+07.00) Ho Chi Minh",
 		    'Asia/Jakarta'         => "(GMT+07:00) Jakarta",
 		    'Asia/Krasnoyarsk'     => "(GMT+08:00) Krasnoyarsk",
 		    'Asia/Chongqing'       => "(GMT+08:00) Chongqing",

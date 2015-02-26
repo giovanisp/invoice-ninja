@@ -1,20 +1,7 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html>
     <head>
         <meta charset="utf-8">
     </head>
-    <body>
-
-      {{ $clientName }},<p/>
-
-      Thank you for your payment of {{ $paymentAmount }}.<p/>
-
-      @if ($emailFooter)
-      {{ nl2br($emailFooter) }}
-      @else
-      Best regards,<br/>
-      {{ $accountName }}
-      @endif
-
-    </body>
+    <body>{{ $body }}</body>
 </html>

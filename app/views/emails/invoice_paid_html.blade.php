@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html>
 <head>
   <meta charset="utf-8">
 </head>
 <body>
 
-  Dear {{ $userName }}, <p/>
+  {{ trans('texts.email_salutation', ['name' => $userName]) }} <p/>
 
-  A payment of {{ $paymentAmount }} was made by client {{ $clientName }} towards invoice {{ $invoiceNumber }}. <p/>
+  {{ trans("texts.notification_{$entityType}_paid", ['amount' => $paymentAmount, 'client' => $clientName, 'invoice' => $invoiceNumber]) }} <p/>
 
-  To view your client invoice click the link below: <br/>
-  {{ $invoiceLink }} <p/>
-
-  To adjust your email notification settings please <a href="http://www.invoiceninja.com/company/notifications">click here</a>.
-
+  {{ trans("texts.{$entityType}_link_message") }} <br/>
+  <a href="{{ $invoiceLink }}">{{ $invoiceLink }}</a><p/>  
+    
+  {{ trans('texts.email_signature') }} <br/>
+  {{ trans('texts.email_from') }} <p/>
+  {{ trans('texts.user_email_footer') }} <p/>
+  
+  
 </body>
 </html>

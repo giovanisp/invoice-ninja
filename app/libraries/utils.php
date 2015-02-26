@@ -2,16 +2,147 @@
 
 class Utils
 {
+	public static function isRegistered()
+	{
+		return Auth::check() && Auth::user()->registered;
+	}
+
+	public static function isConfirmed()
+	{
+		return Auth::check() && Auth::user()->confirmed;
+	}
+
+	public static function isDatabaseSetup()
+	{
+		try 
+		{
+			if (Schema::hasTable('accounts')) 
+			{
+				return true;
+			}
+		} 
+		catch (Exception $e) 
+		{
+    	return false;
+		}	
+	}
+
+	public static function isProd()
+	{
+		return App::environment() == ENV_PRODUCTION;
+	}	
+
+	public static function isNinja()
+	{
+		return self::isNinjaProd() || self::isNinjaDev();
+	}
+
+	public static function isNinjaProd()
+	{
+		return isset($_ENV['NINJA_PROD']) && $_ENV['NINJA_PROD'];		
+	}
+
+	public static function isNinjaDev()
+	{
+		return isset($_ENV['NINJA_DEV']) && $_ENV['NINJA_DEV'];
+	}
+
+	public static function isPro()
+	{
+		return Auth::check() && Auth::user()->isPro();
+	}
+
+	public static function getUserType()
+	{
+		if (Utils::isNinja()) {
+			return USER_TYPE_CLOUD_HOST;
+		} else {
+			return USER_TYPE_SELF_HOST;
+		}
+	}
+
+	public static function getDemoAccountId()
+	{
+		return isset($_ENV[DEMO_ACCOUNT_ID]) ? $_ENV[DEMO_ACCOUNT_ID] : false;
+	}
+
+	public static function isDemo()
+	{
+		return Auth::check() && Auth::user()->isDemo();
+	}
+        
+	public static function getNewsFeedResponse($userType = false) 
+	{
+		if (!$userType) {
+			$userType = Utils::getUserType();
+		}
+
+		$response = new stdClass;
+		$response->message = isset($_ENV["{$userType}_MESSAGE"]) ? $_ENV["{$userType}_MESSAGE"] : '';
+		$response->id = isset($_ENV["{$userType}_ID"]) ? $_ENV["{$userType}_ID"] : '';
+		$response->version = NINJA_VERSION;
+	
+		return $response;
+	}
+
+	public static function getProLabel($feature)
+	{
+		if (Auth::check() 
+				&& !Auth::user()->isPro() 
+				&& $feature == ACCOUNT_ADVANCED_SETTINGS)
+		{
+			return '&nbsp;<sup class="pro-label">PRO</sup>';
+		}
+		else
+		{
+			return '';
+		}
+	}
+
+	public static function basePath() 
+	{
+		return substr($_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SCRIPT_NAME'], '/') + 1);
+	}
+
+	public static function trans($input)
+	{
+		$data = [];
+
+		foreach ($input as $field)
+		{
+			if ($field == "checkbox")
+			{
+				$data[] = $field;
+			}
+			else
+			{
+				$data[] = trans("texts.$field");
+			}
+		}
+
+		return $data;
+	}
+	
 	public static function fatalError($message = false, $exception = false)
 	{
 		if (!$message)
 		{
-			$message = "An error occurred, please try again later";
+			$message = "An error occurred, please try again later.";
 		}
 
 		static::logError($message . ' ' . $exception);		
 
-		return View::make('error')->with('error', $message);
+		$data = [		
+			'showBreadcrumbs' => false,
+			'hideHeader' => true
+		];
+
+		return View::make('error', $data)->with('error', $message);
+	}
+
+	public static function getErrorString($exception)
+	{
+		return "{$exception->getFile()} [Line {$exception->getLine()}] => {$exception->getMessage()}";
 	}
 
 	public static function logError($error, $context = 'PHP')
@@ -27,11 +158,10 @@ class Utils
 			'url' => Input::get('url', Request::url()),
 			'user_agent' => isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '',
 			'ip' => Request::getClientIp(),
-			'count' => Session::get('error_count', 0),
-			'input' => Input::all()
+			'count' => Session::get('error_count', 0)
 		];
 
-		Log::error('\n'.$error, $data);
+		Log::error($error."\n", $data);
 
 		/*
 		Mail::queue('emails.error', ['message'=>$error.' '.json_encode($data)], function($message)
@@ -63,6 +193,19 @@ class Utils
 
 	        $phoneNumber = '+'.$countryCode.' ('.$areaCode.') '.$nextThree.'-'.$lastFour;
 	    }
+	    else if(strlen($phoneNumber) == 10 && in_array(substr($phoneNumber, 0, 3), array(653, 656, 658, 659))) {
+	        /**
+	         * SG country code are 653, 656, 658, 659
+	         * US area code consist of 650, 651 and 657
+	         * @see http://en.wikipedia.org/wiki/Telephone_numbers_in_Singapore#Numbering_plan
+	         * @see http://www.bennetyee.org/ucsd-pages/area.html
+	         */
+	        $countryCode = substr($phoneNumber, 0, 2);
+	        $nextFour = substr($phoneNumber, 2, 4);
+	        $lastFour = substr($phoneNumber, 6, 4);
+
+	        $phoneNumber = '+'.$countryCode.' '.$nextFour.' '.$lastFour;
+	    }
 	    else if(strlen($phoneNumber) == 10) {
 	        $areaCode = substr($phoneNumber, 0, 3);
 	        $nextThree = substr($phoneNumber, 3, 3);
@@ -80,8 +223,13 @@ class Utils
 	    return $phoneNumber;
 	}
 
-	public static function formatMoney($value, $currencyId)
+	public static function formatMoney($value, $currencyId = false)
 	{
+		if (!$currencyId)
+		{
+			$currencyId = Session::get(SESSION_CURRENCY);
+		}
+
 		$currency = Currency::remember(DEFAULT_QUERY_CACHE)->find($currencyId);		
 
 		if (!$currency) 
@@ -94,8 +242,9 @@ class Utils
 
 	public static function pluralize($string, $count) 
 	{
-		$string = str_replace('?', $count, $string);
-		return $count == 1 ? $string : $string . 's';
+		$field = $count == 1 ? $string : $string . 's';		
+		$string = trans("texts.$field", ['count' => $count]);		
+		return $string;
 	}
 
 	public static function toArray($data)
@@ -142,7 +291,7 @@ class Utils
 		return $date->format($format);		
 	}	
 
-	public static function toSqlDate($date)
+	public static function toSqlDate($date, $formatResult = true)
 	{
 		if (!$date)
 		{
@@ -152,10 +301,12 @@ class Utils
 		$timezone = Session::get(SESSION_TIMEZONE);
 		$format = Session::get(SESSION_DATE_FORMAT);
 
-		return DateTime::createFromFormat($format, $date, new DateTimeZone($timezone))->format('Y-m-d');
+
+		$dateTime = DateTime::createFromFormat($format, $date, new DateTimeZone($timezone));
+		return $formatResult ? $dateTime->format('Y-m-d') : $dateTime;
 	}
 	
-	public static function fromSqlDate($date)
+	public static function fromSqlDate($date, $formatResult = true)
 	{
 		if (!$date || $date == '0000-00-00')
 		{
@@ -164,8 +315,9 @@ class Utils
 		
 		$timezone = Session::get(SESSION_TIMEZONE);
 		$format = Session::get(SESSION_DATE_FORMAT);
-		
-		return DateTime::createFromFormat('Y-m-d', $date, new DateTimeZone($timezone))->format($format);
+
+		$dateTime = DateTime::createFromFormat('Y-m-d', $date, new DateTimeZone($timezone));
+		return $formatResult ? $dateTime->format($format) : $dateTime;
 	}
 
 	public static function today($formatResult = true)
@@ -201,26 +353,29 @@ class Utils
 		$object = new stdClass;
 		$object->url = $url;
 		$object->name = ucwords($type) . ': ' . $name;
-		
+	
+		$data = [];
+
 		for ($i=0; $i<count($viewed); $i++)
 		{
 			$item = $viewed[$i];
 			
-			if ($object->url == $item->url)
+			if ($object->url == $item->url || $object->name == $item->name)
 			{
-				array_splice($viewed, $i, 1);
-				break;
-			}
+				continue;				
+			}	
+
+			array_unshift($data, $item);		
 		}
 
-		array_unshift($viewed, $object);
+		array_unshift($data, $object);
 			
-		if (count($viewed) > RECENTLY_VIEWED_LIMIT)
+		if (count($data) > RECENTLY_VIEWED_LIMIT)
 		{
-			array_pop($viewed);
+			array_pop($data);
 		}
 
-		Session::put(RECENTLY_VIEWED, $viewed);
+		Session::put(RECENTLY_VIEWED, $data);
 	}
 
 	public static function processVariables($str)
@@ -352,5 +507,112 @@ class Utils
 		}
 
 		return $message;
+	}
+
+	public static function generateLicense() {
+		$parts = [];
+		for ($i=0; $i<5; $i++) {
+			$parts[] = strtoupper(str_random(4));
+		}
+		return join('-', $parts);
+	}
+
+	public static function lookupEventId($eventName) 
+	{
+		if ($eventName == 'create_client') {
+			return EVENT_CREATE_CLIENT;
+		} else if ($eventName == 'create_invoice') {
+			return EVENT_CREATE_INVOICE;
+		} else if ($eventName == 'create_quote') {
+			return EVENT_CREATE_QUOTE;
+		} else if ($eventName == 'create_payment') {
+			return EVENT_CREATE_PAYMENT;
+		} else {
+			return false;
+		}
+	}
+
+	public static function notifyZapier($subscription, $data) {
+    $curl = curl_init();
+
+		$jsonEncodedData = json_encode($data->toJson());
+		$opts = [
+	    CURLOPT_URL => $subscription->target_url,
+	    CURLOPT_RETURNTRANSFER => true,
+	    CURLOPT_CUSTOMREQUEST => 'POST',
+	    CURLOPT_POST => 1,
+	    CURLOPT_POSTFIELDS => $jsonEncodedData,
+	    CURLOPT_HTTPHEADER  => ['Content-Type: application/json', 'Content-Length: ' . strlen($jsonEncodedData)]
+		];
+
+    curl_setopt_array($curl, $opts);
+    
+    $result = curl_exec($curl);
+    $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+    curl_close($curl);
+
+    if ($status == 410)
+    {
+    	$subscription->delete();
+    }
+	}
+
+	public static function remapPublicIds($data) {
+    foreach ($data as $index => $record) {
+    	if (!isset($data[$index]['public_id'])) {
+    		continue;
+    	}
+      $data[$index]['id'] = $data[$index]['public_id'];
+      unset($data[$index]['public_id']);
+
+      foreach ($record as $key => $val) {
+      	if (is_array($val)) {      		
+      		$data[$index][$key] = Utils::remapPublicIds($val);
+      	}
+      }
+    }
+    return $data;
+	}
+
+	public static function getApiHeaders($count = 0) {
+    return [
+      'Content-Type' => 'application/json',
+      //'Access-Control-Allow-Origin' => '*',
+      //'Access-Control-Allow-Methods' => 'GET',
+      //'Access-Control-Allow-Headers' => 'Origin, Content-Type, Accept, Authorization, X-Requested-With',      
+      //'Access-Control-Allow-Credentials' => 'true',
+      'X-Total-Count' => $count,
+      //'X-Rate-Limit-Limit' - The number of allowed requests in the current period
+      //'X-Rate-Limit-Remaining' - The number of remaining requests in the current period
+      //'X-Rate-Limit-Reset' - The number of seconds left in the current period,
+    ];
 	}	
+
+	public static function startsWith($haystack, $needle)
+	{
+    return $needle === "" || strpos($haystack, $needle) === 0;
+	}
+
+	public static function endsWith($haystack, $needle)
+	{
+    return $needle === "" || substr($haystack, -strlen($needle)) === $needle;
+	}
+
+	public static function getEntityRowClass($model)	
+	{
+		$str = $model->is_deleted || ($model->deleted_at && $model->deleted_at != '0000-00-00') ? 'DISABLED ' : '';
+
+		if ($model->is_deleted)
+		{
+			$str .= 'ENTITY_DELETED ';
+		}
+
+		if ($model->deleted_at && $model->deleted_at != '0000-00-00')
+		{
+			$str .= 'ENTITY_ARCHIVED ';	
+		}
+
+		return $str;
+	}
 }

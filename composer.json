@@ -3,18 +3,35 @@
 	"description": "An open-source invoicing site built with Laravel",
 	"keywords": ["invoice", "laravel"],
 	"license": "Attribution Assurance License",
+	"authors": [
+		{
+			"name": "Hillel Coren",
+			"email": "hillelcoren@gmail.com"
+		}
+	],
 	"require": {
-		"laravel/framework": "4.1.*",
-		"jasonlewis/basset": "dev-master",
-		"patricktalmadge/bootstrapper": "dev-develop",
+		"laravel/framework": "4.1.25",
+		"patricktalmadge/bootstrapper": "4.1.x",
 		"zizaco/confide": "3.1.x",
-		"anahkiasen/former": "dev-master",
+		"anahkiasen/former": "3.4.x",
 		"barryvdh/laravel-debugbar": "dev-master",
 		"chumper/datatable": "2.x",
-		"omnipay/omnipay": "2.x",
-		"intervention/image": "dev-master",
+		"omnipay/omnipay": "~2.0",
+		"intervention/image": "1.x",
 		"webpatser/laravel-countries": "dev-master",
-		"anahkiasen/rocketeer": "dev-develop",
+		"barryvdh/laravel-ide-helper": "~1.0",
+    "doctrine/dbal": "~2.3",
+    "jsanc623/phpbenchtime": "2.x",
+    "lokielse/omnipay-alipay": "dev-master",
+    "coatesap/omnipay-datacash": "~2.0",
+    "alfaproject/omnipay-neteller": "~1.0",
+    "mfauveau/omnipay-pacnet": "~2.0",
+    "coatesap/omnipay-paymentsense": "~2.0",
+    "coatesap/omnipay-realex": "~2.0",
+    "fruitcakestudio/omnipay-sisow": "~2.0",
+    "alfaproject/omnipay-skrill": "dev-master"
+	},
+	"require-dev": {
 		"codeception/codeception": "dev-master"
 	},
 	"autoload": {
@@ -25,7 +42,8 @@
 			"app/database/migrations",
 			"app/database/seeds",
 			"app/tests/TestCase.php",
-			"app/libraries"
+			"app/libraries",
+			"vendor/php-payments/lib"
 		],
 		"psr-0" : {
 			"ninja" : "app/"
@@ -33,10 +51,13 @@
 	},
 	"scripts": {
 		"post-install-cmd": [
-			"php artisan optimize"
+			"php artisan optimize",
+			"php artisan debugbar:publish"
 		],
 		"post-update-cmd": [
 			"php artisan clear-compiled",
+            "php artisan ide-helper:generate",
+			"php artisan debugbar:publish",
 			"php artisan optimize"
 		],
 		"post-create-project-cmd": [

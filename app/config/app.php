@@ -26,7 +26,7 @@ return array(
 	|
 	*/
 
-	'url' => 'http://www.invoiceninja.com',
+	'url' => '',
 
 	/*
 	|--------------------------------------------------------------------------
@@ -63,6 +63,8 @@ return array(
 	| to a random, 32 character string, otherwise these encrypted strings
 	| will not be safe. Please do this before deploying an application!
 	|
+	| Command below will generate a random 32 character alphanumeric string
+	| cat /dev/random | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1
 	*/
 
 	'key' => '',
@@ -114,15 +116,14 @@ return array(
 		'Illuminate\View\ViewServiceProvider',
 		'Illuminate\Workbench\WorkbenchServiceProvider',
 		'Illuminate\Remote\RemoteServiceProvider',
-		'Basset\BassetServiceProvider',
 		'Bootstrapper\BootstrapperServiceProvider',
 		'Zizaco\Confide\ConfideServiceProvider',
 		'Former\FormerServiceProvider',
 		'Barryvdh\Debugbar\ServiceProvider',
 		'Chumper\Datatable\DatatableServiceProvider',
 		'Intervention\Image\ImageServiceProvider',
-		'Webpatser\Countries\CountriesServiceProvider',
-		'Rocketeer\RocketeerServiceProvider',
+    'Webpatser\Countries\CountriesServiceProvider',
+    'Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider',
 	),
 
 	/*
@@ -172,7 +173,7 @@ return array(
 		'Lang'            => 'Illuminate\Support\Facades\Lang',
 		'Log'             => 'Illuminate\Support\Facades\Log',
 		'Mail'            => 'Illuminate\Support\Facades\Mail',
-		'Paginator'       => 'Illuminate\Support\Facades\Paginator',
+		//'Paginator'       => 'Illuminate\Support\Facades\Paginator',
 		'Password'        => 'Illuminate\Support\Facades\Password',
 		'Queue'           => 'Illuminate\Support\Facades\Queue',
 		'Redirect'        => 'Illuminate\Support\Facades\Redirect',
@@ -188,7 +189,6 @@ return array(
 		'Validator'       => 'Illuminate\Support\Facades\Validator',
 		'View'            => 'Illuminate\Support\Facades\View',
 		'SSH' 			      => 'Illuminate\Support\Facades\SSH',
-		'Basset' 		      => 'Basset\Facade',
 		'Alert'           => 'Bootstrapper\Alert',
 		'Badge'           => 'Bootstrapper\Badge',
 		'Breadcrumb'      => 'Bootstrapper\Breadcrumb',
@@ -200,7 +200,7 @@ return array(
 		'Form'            => 'Bootstrapper\Form',
 		'Helpers'         => 'Bootstrapper\Helpers',
 		'Icon'            => 'Bootstrapper\Icon',
-		'Image'           => 'Bootstrapper\Image',
+		//'Image'           => 'Bootstrapper\Image',
 		'Label'           => 'Bootstrapper\Label',
 		'MediaObject'     => 'Bootstrapper\MediaObject',
 		'Navbar'          => 'Bootstrapper\Navbar',

@@ -1,3 +1,1 @@
-Name: {{ $name }}<br/>
-Email: {{ $email }}<p/>
-Message: {{ $text }}
+{{ nl2br($text) }}
